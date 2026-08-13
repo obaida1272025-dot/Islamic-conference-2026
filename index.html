@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ইসলামিক কনফারেন্স ২০২৬ - ডোনেশন ও খরচের হিসাব</title>
-    <meta name="description" content="ইসলামিক কনফারেন্স ২০২৬ - সহজ, স্বচ্ছ ও মোবাইল ফ্রেন্ডলি ডোনেশন ও ব্যয়ের পূর্ণাঙ্গ হিসাব বিবরণী।">
+    <meta name="description" content="ইসলামিক কনফারেন্স ২০২৬ - সহজ, স্বচ্ছ ও মোবাইল ফ্রেন্ডলি ডোনেশন ও ব্যয়ের লাইভ হিসাব বিবরণী।">
     
     <!-- Google Fonts & FontAwesome -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -125,6 +125,35 @@
         header p {
             font-size: 15px;
             color: #a7f3d0;
+        }
+
+        /* Cloud Live Status Banner */
+        .live-status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 12px;
+            margin-top: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #e2e8f0;
+        }
+
+        .live-pulse {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse 1.6s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
         /* Balance Hero Card */
@@ -493,7 +522,10 @@
                 </div>
             </div>
             <h1>ইসলামিক কনফারেন্স ২০২৬</h1>
-            <p>ডোনেশন ও খরচের সরাসরি স্বচ্ছ হিসাব বিবরণী</p>
+            <p>ডোনেশন ও খরচের সরাসরি লাইভ হিসাব বিবরণী</p>
+            <div class="live-status-indicator" id="liveSyncStatus">
+                <div class="live-pulse"></div> <span id="syncText">অনলাইন ক্লাউড সিংকিং সক্রিয়</span>
+            </div>
         </div>
     </header>
 
@@ -501,7 +533,7 @@
 
         <!-- Admin Status Banner -->
         <div class="admin-banner-status" style="margin-top: 14px;">
-            <i class="fa-solid fa-shield-check"></i> এডমিন মোড সক্রিয়: আপনি যুক্ত ও ডিলিট করতে পারবেন (রিফ্রেশ করলেও লগইন থাকবে)।
+            <i class="fa-solid fa-shield-check"></i> এডমিন মোড সক্রিয়: আপনার যোগ/ডিলিট সকল ডিভাইসে লাইভ হয়ে যাবে।
         </div>
 
         <!-- Balance Hero Card -->
@@ -625,6 +657,7 @@
 
         <!-- Footer Tools -->
         <div class="footer-tools">
+            <button class="btn-secondary admin-only" onclick="openModal('cloudModal')"><i class="fa-solid fa-cloud"></i> 🌐 JSONBin ডাটাবেজ লিংক</button>
             <button class="btn-secondary admin-only" onclick="exportData()"><i class="fa-solid fa-download"></i> ব্যাকআপ নামান (JSON)</button>
             <button class="btn-secondary admin-only" onclick="triggerImport()"><i class="fa-solid fa-upload"></i> ডাটা আপলোড</button>
             <input type="file" id="importFile" style="display:none" onchange="importData(event)">
@@ -650,6 +683,36 @@
                 <div style="display: flex; gap: 10px; margin-top: 18px;">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('adminLoginModal')">বাতিল</button>
                     <button type="submit" class="btn btn-donation">লগইন করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JSONBin.io Cloud Setting Modal -->
+    <div class="modal-overlay" id="cloudModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h4><i class="fa-solid fa-cloud-bolt" style="color:var(--blue-main);"></i> JSONBin.io লাইভ ডাটাবেজ সেটআপ</h4>
+                <button class="close-btn" onclick="closeModal('cloudModal')">&times;</button>
+            </div>
+            <div style="background:var(--primary-bg); border-radius:10px; padding:12px; margin-bottom:14px; font-size:13px; color:var(--text-muted); line-height:1.7;">
+                <strong style="color:var(--green-main);">🟢 ৩ মিনিটে লাইভ সেটআপ:</strong><br>
+                ১. <a href="https://jsonbin.io" target="_blank" style="color:var(--blue-main);">jsonbin.io</a>-তে ফ্রি অ্যাকাউন্ট খুলুন।<br>
+                ২. <b>API Keys</b> মেনু থেকে <b>Secret Key</b> কপি করুন।<br>
+                ৩. <b>Bins > Create a Bin</b> করে যেকোনো JSON দিয়ে তৈরি করুন। তারপর URL থেকে Bin ID (শেষের অংশ) কপি করুন।
+            </div>
+            <form onsubmit="saveJsonBinConfig(event)">
+                <div class="form-group">
+                    <label>Bin ID *</label>
+                    <input type="text" id="jsonBinId" placeholder="যেমন: 6744fabc1234567890" required>
+                </div>
+                <div class="form-group">
+                    <label>API Secret Key *</label>
+                    <input type="text" id="jsonBinKey" placeholder="যেমন: $2b$10$abc..." required>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 18px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('cloudModal')">বাতিল</button>
+                    <button type="submit" class="btn btn-donation">সেটআপ সম্পন্ন করুন</button>
                 </div>
             </form>
         </div>
@@ -704,33 +767,25 @@
     </div>
 
     <script>
-        // Safe Storage Helper to work inside Google Sites iframe & sandboxed environments
+        // Safe Storage Helper
         const SafeStorage = {
             getItem: function(key) {
-                try {
-                    return localStorage.getItem(key);
-                } catch(e) {
-                    return window._memStore ? window._memStore[key] : null;
-                }
+                try { return localStorage.getItem(key); } catch(e) { return window._memStore ? window._memStore[key] : null; }
             },
             setItem: function(key, val) {
-                try {
-                    localStorage.setItem(key, val);
-                } catch(e) {
-                    if (!window._memStore) window._memStore = {};
-                    window._memStore[key] = val;
-                }
+                try { localStorage.setItem(key, val); } catch(e) { if (!window._memStore) window._memStore = {}; window._memStore[key] = val; }
             },
             removeItem: function(key) {
-                try {
-                    localStorage.removeItem(key);
-                } catch(e) {
-                    if (window._memStore) delete window._memStore[key];
-                }
+                try { localStorage.removeItem(key); } catch(e) { if (window._memStore) delete window._memStore[key]; }
             }
         };
 
-        // Sample Initial Demo Data
+        // JSONBin.io Cloud Database Config
+        let jsonBinId  = SafeStorage.getItem('conf_jsonbin_id')  || '';
+        let jsonBinKey = SafeStorage.getItem('conf_jsonbin_key') || '';
+        const JSONBIN_BASE = 'https://api.jsonbin.io/v3/b/';
+
+        // Default Initial Demo Data
         const defaultDonations = [
             { id: 1, name: "হাফেজ মাওলানা ওবায়দুল্লাহ", amount: 15000 },
             { id: 2, name: "মো: আরিফুল ইসলাম", amount: 5000 },
@@ -747,25 +802,21 @@
             { id: 5, title: "প্রচারপত্র ও পোস্টার প্রিন্টিং খরচ", amount: 1800 }
         ];
 
-        // Persistent State Management
+        // State
         let donations = [];
         let expenses = [];
 
-        // Check if user has initialized site data previously
+        // Load local cache immediately
         const hasInitialized = SafeStorage.getItem('conf_has_initialized');
-
         if (!hasInitialized) {
-            // First time ever opening: Load default demo data
             donations = defaultDonations;
             expenses = defaultExpenses;
             SafeStorage.setItem('conf_has_initialized', 'true');
             SafeStorage.setItem('conf_donations', JSON.stringify(donations));
             SafeStorage.setItem('conf_expenses', JSON.stringify(expenses));
         } else {
-            // Read EXACT user saved arrays (even if empty [])
             const savedDonations = SafeStorage.getItem('conf_donations');
             const savedExpenses = SafeStorage.getItem('conf_expenses');
-
             donations = savedDonations !== null ? JSON.parse(savedDonations) : [];
             expenses = savedExpenses !== null ? JSON.parse(savedExpenses) : [];
         }
@@ -781,7 +832,7 @@
                 updateThemeBtn(true);
             }
 
-            // Restore Admin Session across Page Refreshes!
+            // Restore Admin Session
             if (SafeStorage.getItem('conf_admin_logged_in') === 'true') {
                 isAdminLoggedIn = true;
                 document.body.classList.add('is-admin');
@@ -789,7 +840,22 @@
                 document.getElementById('adminLoginBtn').classList.add('logged-in');
             }
 
+            if (jsonBinId && jsonBinKey) {
+                document.getElementById('jsonBinId').value = jsonBinId;
+                document.getElementById('jsonBinKey').value = jsonBinKey;
+                fetchCloudData(); // Pull live data immediately
+            } else {
+                document.getElementById('syncText').innerText = "অনলাইন কানেকশন প্রস্তুত";
+            }
+
             renderAll();
+
+            // Auto-refresh every 20 seconds for all visitors
+            setInterval(() => {
+                if (jsonBinId && jsonBinKey) {
+                    fetchCloudData(true); // Silent background sync
+                }
+            }, 20000);
         });
 
         // Theme Switcher
@@ -813,10 +879,9 @@
                 : `<i class="fa-solid fa-moon"></i> <span>ডার্ক</span>`;
         }
 
-        // Admin Security Authentication
+        // Admin Auth
         function handleAdminAuth() {
             if (isAdminLoggedIn) {
-                // Logout
                 isAdminLoggedIn = false;
                 SafeStorage.setItem('conf_admin_logged_in', 'false');
                 document.body.classList.remove('is-admin');
@@ -833,13 +898,13 @@
             const passInput = document.getElementById('adminPasswordInput').value;
             if (passInput === adminPass) {
                 isAdminLoggedIn = true;
-                SafeStorage.setItem('conf_admin_logged_in', 'true'); // Persist Admin Session
+                SafeStorage.setItem('conf_admin_logged_in', 'true');
                 document.body.classList.add('is-admin');
                 document.getElementById('adminBtnText').innerText = 'লগআউট (এডমিন)';
                 document.getElementById('adminLoginBtn').classList.add('logged-in');
                 closeModal('adminLoginModal');
                 document.getElementById('adminPasswordInput').value = '';
-                alert("স্বাগতম! এডমিন মোড সক্রিয় হয়েছে। পেজ রিফ্রেশ করলেও লগইন থাকবে।");
+                alert("স্বাগতম! এডমিন মোড সক্রিয় হয়েছে।");
             } else {
                 alert("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
             }
@@ -857,11 +922,76 @@
             }
         }
 
-        // Save Data to Storage Permanently
+        // Save Data Locally and Sync with Online Cloud
         function saveData() {
             SafeStorage.setItem('conf_donations', JSON.stringify(donations));
             SafeStorage.setItem('conf_expenses', JSON.stringify(expenses));
             renderAll();
+
+            if (cloudApiUrl) {
+                pushCloudData(); // Sync to online database
+            }
+        }
+
+        // Fetch Live Data from Cloud API / Google Sheets
+        function fetchCloudData(silent = false) {
+            if (!cloudApiUrl) return;
+
+            if (!silent) document.getElementById('syncText').innerText = "লাইভ ডাটা আপডেট হচ্ছে...";
+
+            fetch(cloudApiUrl)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && typeof data === 'string') {
+                        data = JSON.parse(data);
+                    }
+                    if (data && data.donations && data.expenses) {
+                        donations = data.donations;
+                        expenses = data.expenses;
+                        SafeStorage.setItem('conf_donations', JSON.stringify(donations));
+                        SafeStorage.setItem('conf_expenses', JSON.stringify(expenses));
+                        renderAll();
+                        document.getElementById('syncText').innerText = "লাইভ ক্লাউড ডাটা সিঙ্কড 🟢";
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('syncText').innerText = "অফলাইন / লোকাল ডাটা সক্রিয়";
+                });
+        }
+
+        // Push Local Updates to Cloud API / Google Sheets
+        function pushCloudData() {
+            if (!cloudApiUrl) return;
+
+            document.getElementById('syncText').innerText = "ক্লাউডে সেভ হচ্ছে...";
+
+            const payload = JSON.stringify({ donations, expenses });
+
+            fetch(cloudApiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: payload
+            })
+            .then(res => res.json())
+            .then(res => {
+                document.getElementById('syncText').innerText = "লাইভ সেভ সম্পন্ন 🟢";
+            })
+            .catch(err => {
+                document.getElementById('syncText').innerText = "লোকাল সেভ সম্পন্ন (অনলাইন অপেক্ষমাণ)";
+            });
+        }
+
+        // Cloud URL Save Handler
+        function saveCloudUrl(e) {
+            e.preventDefault();
+            const url = document.getElementById('cloudUrlInput').value.trim();
+            if (url) {
+                cloudApiUrl = url;
+                SafeStorage.setItem('conf_cloud_api_url', cloudApiUrl);
+                closeModal('cloudModal');
+                alert("গুগল শিট ডাটাবেজ লিংক সেভ হয়েছে! এখন থেকে লাইভ সিঙ্ক শুরু হবে।");
+                pushCloudData();
+            }
         }
 
         function renderAll() {
@@ -966,31 +1096,29 @@
             closeModal('expenseModal');
         }
 
-        // Permanent Delete Handlers
         function deleteDonation(id) {
             if (!isAdminLoggedIn) return;
-            if (confirm("আপনি কি নিশ্চিত যে এই অনুদানটি স্থায়ীভাবে মুছে ফেলতে চান? (রিফ্রেশ করলেও আর ফেরত আসবে না)")) {
+            if (confirm("আপনি কি নিশ্চিত যে এই অনুদানটি মুছে ফেলতে চান?")) {
                 donations = donations.filter(d => d.id !== id);
-                saveData(); // Permanently saved
+                saveData();
             }
         }
 
         function deleteExpense(id) {
             if (!isAdminLoggedIn) return;
-            if (confirm("আপনি কি নিশ্চিত যে এই খরচের বিবরণটি স্থায়ীভাবে মুছে ফেলতে চান? (রিফ্রেশ করলেও আর ফেরত আসবে না)")) {
+            if (confirm("আপনি কি নিশ্চিত যে এই খরচের বিবরণটি মুছে ফেলতে চান?")) {
                 expenses = expenses.filter(e => e.id !== id);
-                saveData(); // Permanently saved
+                saveData();
             }
         }
 
-        // Clear All Demo Data & Start 0
         function clearAllDemoData() {
             if (!isAdminLoggedIn) return;
-            if (confirm("⚠️ আপনি কি সকল ডেমো ডাটা মুছে ফেলে সম্পূর্ণ নতুন করে ০ টাকা থেকে হিসাব শুরু করতে চান?")) {
+            if (confirm("⚠️ আপনি কি সকল ডেমো ডাটা মুছে ফেলে নতুন করে ০ টাকা থেকে হিসাব শুরু করতে চান?")) {
                 donations = [];
                 expenses = [];
                 saveData();
-                alert("সকল ডেমো ডাটা সাফ করা হয়েছে! এখন আপনি নতুন রিয়েল তথ্য যোগ করতে পারবেন।");
+                alert("সকল ডেমো ডাটা সাফ করা হয়েছে!");
             }
         }
 
