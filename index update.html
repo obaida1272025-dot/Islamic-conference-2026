@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ইসলামিক কনফারেন্স ২০২৬ - ডোনেশন ও খরচের হিসাব</title>
+    <meta name="description" content="ইসলামিক কনফারেন্স ২০২৬ - সহজ, স্বচ্ছ ও মোবাইল ফ্রেন্ডলি ডোনেশন ও ব্যয়ের পূর্ণাঙ্গ হিসাব বিবরণী।">
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase Realtime Database SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --primary-bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --header-bg: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            
+            --green-main: #059669;
+            --green-light: #d1fae5;
+            --red-main: #dc2626;
+            --red-light: #fee2e2;
+            --blue-main: #2563eb;
+            --amber-main: #d97706;
+
+            --radius-card: 16px;
+            --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme="dark"] {
+            --primary-bg: #0f172a;
+            --card-bg: #1e293b;
+            --header-bg: linear-gradient(135deg, #022c22 0%, #064e3b 100%);
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+
+            --green-light: rgba(5, 150, 105, 0.2);
+            --red-light: rgba(220, 38, 38, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Hind Siliguri', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            padding-bottom: 60px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 12px;
+        }
+
+        /* Header Banner */
+        header {
+            background: var(--header-bg);
+            color: #ffffff;
+            padding: 24px 16px 36px 16px;
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .badge-tag {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .sync-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: #d1fae5;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .sync-badge.syncing {
+            background: rgba(245, 158, 11, 0.3);
+            color: #fef08a;
+        }
+
+        .sync-badge.error {
+            background: rgba(239, 68, 68, 0.3);
+            color: #fecaca;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .theme-btn, .admin-login-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .admin-login-btn.logged-in {
+            background: #10b981;
+            border-color: #059669;
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        header p {
+            font-size: 15px;
+            color: #a7f3d0;
+        }
+
+        /* Balance Hero Card */
+        .balance-hero-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-card);
+            border: 2px solid var(--green-main);
+            box-shadow: var(--shadow-card);
+            margin-top: -20px;
+            padding: 20px 16px;
+            margin-bottom: 24px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .balance-hero-title {
+            font-size: 15px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .net-balance {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--green-main);
+            margin-bottom: 12px;
+        }
+
+        .math-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: var(--primary-bg);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .math-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .math-item span {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .math-item strong {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .math-item.donation strong { color: var(--blue-main); }
+        .math-item.expense strong { color: var(--red-main); }
+
+        /* Admin-Only Control Elements (Hidden by default for general public) */
+        .admin-only {
+            display: none !important; /* General public will NOT see edit/delete buttons */
+        }
+
+        body.is-admin .admin-only {
+            display: flex !important; /* Admin mode turns this ON */
+        }
+
+        body.is-admin .admin-only-inline {
+            display: inline-block !important;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-donation { background-color: var(--green-main); color: white; }
+        .btn-expense { background-color: var(--amber-main); color: white; }
+        .btn-secondary {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            font-size: 13px;
+            border-radius: 8px;
+        }
+
+        /* Section Cards */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-card);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-card);
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title.donation-title i { color: var(--green-main); }
+        .section-title.expense-title i { color: var(--red-main); }
+
+        .search-input {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--primary-bg);
+            color: var(--text-color);
+            font-size: 14px;
+            margin-bottom: 12px;
+            outline: none;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: var(--primary-bg);
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table td {
+            padding: 12px;
+            font-size: 15px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .text-right { text-align: right !important; }
+
+        .donor-name { font-weight: 600; color: var(--text-color); }
+        .amount-green { font-weight: 700; color: var(--green-main); }
+        .amount-red { font-weight: 700; color: var(--red-main); }
+
+        .table-footer-row {
+            background: var(--green-light);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        [data-theme="dark"] .table-footer-row { background: rgba(5, 150, 105, 0.25); }
+
+        .table-footer-row.expense-footer { background: var(--red-light); }
+        [data-theme="dark"] .table-footer-row.expense-footer { background: rgba(220, 38, 38, 0.25); }
+
+        .table-footer-row td {
+            border-top: 2px solid var(--border-color);
+            border-bottom: none;
+            padding: 12px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--red-main);
+            cursor: pointer;
+            font-size: 15px;
+            padding: 4px;
+            margin-left: 6px;
+            display: none;
+        }
+
+        body.is-admin .delete-btn {
+            display: inline-block;
+        }
+
+        /* Summary Box */
+        .final-summary-box {
+            background: var(--card-bg);
+            border-radius: var(--radius-card);
+            border: 2px dashed var(--border-color);
+            padding: 20px 16px;
+            margin-bottom: 24px;
+        }
+
+        .final-summary-box h3 {
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .summary-line.result {
+            border-bottom: none;
+            border-top: 2px solid var(--green-main);
+            margin-top: 6px;
+            padding-top: 14px;
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--green-main);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        @media (min-width: 600px) {
+            .modal-overlay { align-items: center; }
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-box {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            padding: 20px 20px 30px 20px;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.2);
+            transform: translateY(100%);
+            transition: transform 0.25s ease;
+        }
+
+        @media (min-width: 600px) {
+            .modal-box { border-radius: var(--radius-card); transform: translateY(20px); }
+        }
+
+        .modal-overlay.active .modal-box { transform: translateY(0); }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h4 { font-size: 18px; font-weight: 700; }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--primary-bg);
+            color: var(--text-color);
+            font-size: 16px;
+            outline: none;
+        }
+
+        .footer-tools {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .admin-banner-status {
+            background: var(--green-light);
+            color: var(--green-main);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        body.is-admin .admin-banner-status {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Banner -->
+    <header>
+        <div class="container">
+            <div class="header-top">
+                <span class="badge-tag"><i class="fa-solid fa-kaaba"></i> কনফারেন্স ২০২৬</span>
+                <div class="header-actions">
+                    <button class="admin-login-btn" id="adminLoginBtn" onclick="handleAdminAuth()">
+                        <i class="fa-solid fa-lock"></i> <span id="adminBtnText">এডমিন লগইন</span>
+                    </button>
+                    <button class="theme-btn" id="themeToggleBtn">
+                        <i class="fa-solid fa-moon"></i> <span>ডার্ক</span>
+                    </button>
+                </div>
+            </div>
+            <h1>ইসলামিক কনফারেন্স ২০২৬</h1>
+            <p>ডোনেশন ও খরচের সরাসরি স্বচ্ছ হিসাব বিবরণী</p>
+            <div class="sync-badge" id="syncStatusBadge"><i class="fa-solid fa-spinner fa-spin"></i> লাইভ ক্লাউড ডাটাবেজ কানেক্ট হচ্ছে...</div>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- Admin Notice Banner (Visible only when logged in) -->
+        <div class="admin-banner-status" style="margin-top: 14px;">
+            <i class="fa-solid fa-shield-check"></i> এডমিন মোড সক্রিয়: আপনি এখন নতুন অনুদান/খরচ যোগ এবং ডিলিট করতে পারবেন।
+        </div>
+
+        <!-- Balance Hero Card -->
+        <div class="balance-hero-card">
+            <div class="balance-hero-title"><i class="fa-solid fa-wallet"></i> মোট অবশিষ্ট ফান্ড (ক্যাশ জমার পরিমাণ)</div>
+            <div class="net-balance" id="heroNetBalance">৳ ০</div>
+
+            <div class="math-breakdown">
+                <div class="math-item donation">
+                    <span>মোট ডোনেশন উঠেছে</span>
+                    <strong id="heroTotalDonation">৳ ০</strong>
+                </div>
+                <div class="math-item expense">
+                    <span>মোট ব্যয় / খরচ হয়েছে</span>
+                    <strong id="heroTotalExpense">৳ ০</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Action Buttons (Hidden for General Visitors, Visible ONLY to Admin) -->
+        <div class="action-buttons admin-only">
+            <button class="btn btn-donation" onclick="openModal('donationModal')">
+                <i class="fa-solid fa-plus-circle"></i> ডোনেশন যোগ করুন
+            </button>
+            <button class="btn btn-expense" onclick="openModal('expenseModal')">
+                <i class="fa-solid fa-minus-circle"></i> খরচ যোগ করুন
+            </button>
+        </div>
+
+        <!-- SECTION 1: DONATION LIST -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-title donation-title">
+                    <i class="fa-solid fa-hand-holding-heart"></i>
+                    <span>কারা কত টাকা ডোনেট করেছেন</span>
+                </div>
+            </div>
+
+            <input type="text" id="donorSearchInput" class="search-input" placeholder="দাতার নাম দিয়ে খুঁজুন..." oninput="renderDonations()">
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">#</th>
+                        <th>দাতার নাম</th>
+                        <th class="text-right" style="width: 40%;">টাকার পরিমাণ</th>
+                    </tr>
+                </thead>
+                <tbody id="donationTableBody">
+                    <!-- Dynamic Rows -->
+                </tbody>
+                <tfoot>
+                    <tr class="table-footer-row">
+                        <td colspan="2">
+                            <i class="fa-solid fa-users" style="color:var(--green-main);"></i> 
+                            মোট দাতা: <span id="totalDonorsCount">০</span> জন
+                        </td>
+                        <td class="text-right amount-green" id="footerTotalDonation">
+                            ৳ ০
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- SECTION 2: EXPENSE LIST -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-title expense-title">
+                    <i class="fa-solid fa-receipt"></i>
+                    <span>কোথায় কত টাকা খরচ (ব্যয়) হলো</span>
+                </div>
+            </div>
+
+            <input type="text" id="expenseSearchInput" class="search-input" placeholder="খাত বা খরচের বিবরণ দিয়ে খুঁজুন..." oninput="renderExpenses()">
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">#</th>
+                        <th>খরচের বিবরণ / খাত</th>
+                        <th class="text-right" style="width: 40%;">টাকার পরিমাণ</th>
+                    </tr>
+                </thead>
+                <tbody id="expenseTableBody">
+                    <!-- Dynamic Rows -->
+                </tbody>
+                <tfoot>
+                    <tr class="table-footer-row expense-footer">
+                        <td colspan="2">
+                            <i class="fa-solid fa-list-check" style="color:var(--red-main);"></i> 
+                            মোট খরচের খাত: <span id="totalExpensesCount">০</span> টি
+                        </td>
+                        <td class="text-right amount-red" id="footerTotalExpense">
+                            ৳ ০
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- SECTION 3: FINAL CALCULATED SUMMARY -->
+        <div class="final-summary-box">
+            <h3><i class="fa-solid fa-calculator" style="color:var(--green-main);"></i> চূড়ান্ত হিসাব ও অবশিষ্ট ফান্ডের বিবরণী</h3>
+            
+            <div class="summary-line">
+                <span>১. মোট ডোনেশন সংগ্রহ:</span>
+                <strong style="color:var(--blue-main);" id="summaryDonation">৳ ০</strong>
+            </div>
+            
+            <div class="summary-line">
+                <span>২. বিয়োগ: মোট সেমিনার ব্যয় (খরচ):</span>
+                <strong style="color:var(--red-main);" id="summaryExpense">- ৳ ০</strong>
+            </div>
+
+            <div class="summary-line result">
+                <span>অবশিষ্ট সমাপনী ব্যালেন্স:</span>
+                <strong id="summaryNetBalance">৳ ০</strong>
+            </div>
+        </div>
+
+        <!-- Footer Tools -->
+        <div class="footer-tools">
+            <button class="btn-secondary admin-only" onclick="exportData()"><i class="fa-solid fa-download"></i> ব্যাকআপ নামান (JSON)</button>
+            <button class="btn-secondary admin-only" onclick="triggerImport()"><i class="fa-solid fa-upload"></i> ডাটা আপলোড</button>
+            <input type="file" id="importFile" style="display:none" onchange="importData(event)">
+            <button class="btn-secondary" onclick="window.print()"><i class="fa-solid fa-print"></i> প্রিন্ট করুন</button>
+            <button class="btn-secondary admin-only" onclick="changeAdminPassword()"><i class="fa-solid fa-key"></i> পাসওয়ার্ড পরিবর্তন</button>
+        </div>
+
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div class="modal-overlay" id="adminLoginModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h4><i class="fa-solid fa-user-shield" style="color:var(--green-main);"></i> এডমিন প্যানেল লগইন</h4>
+                <button class="close-btn" onclick="closeModal('adminLoginModal')">&times;</button>
+            </div>
+            <form onsubmit="submitAdminLogin(event)">
+                <div class="form-group">
+                    <label>এডমিন পাসওয়ার্ড লিখুন *</label>
+                    <input type="password" id="adminPasswordInput" placeholder="পাসওয়ার্ড লিখুন (ডিফল্ট: 1234)" required>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 18px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('adminLoginModal')">বাতিল</button>
+                    <button type="submit" class="btn btn-donation">লগইন করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Donation Modal -->
+    <div class="modal-overlay" id="donationModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h4><i class="fa-solid fa-plus-circle" style="color:var(--green-main);"></i> নতুন ডোনেশন যোগ করুন</h4>
+                <button class="close-btn" onclick="closeModal('donationModal')">&times;</button>
+            </div>
+            <form onsubmit="saveDonation(event)">
+                <div class="form-group">
+                    <label>দাতার নাম *</label>
+                    <input type="text" id="donorName" placeholder="যেমন: মো: আরিফুল ইসলাম" required>
+                </div>
+                <div class="form-group">
+                    <label>টাকার পরিমাণ (৳) *</label>
+                    <input type="number" id="donorAmount" placeholder="যেমন: ৫০০০০" min="1" required>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 18px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('donationModal')">বাতিল</button>
+                    <button type="submit" class="btn btn-donation">সংরক্ষণ করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div class="modal-overlay" id="expenseModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h4><i class="fa-solid fa-minus-circle" style="color:var(--amber-main);"></i> নতুন খরচ যোগ করুন</h4>
+                <button class="close-btn" onclick="closeModal('expenseModal')">&times;</button>
+            </div>
+            <form onsubmit="saveExpense(event)">
+                <div class="form-group">
+                    <label>কোথায়/কি কাজে খরচ হলো? *</label>
+                    <input type="text" id="expenseTitle" placeholder="যেমন: স্টেজ ও প্যান্ডেল তৈরি করতে খরচ" required>
+                </div>
+                <div class="form-group">
+                    <label>টাকার পরিমাণ (৳) *</label>
+                    <input type="number" id="expenseAmount" placeholder="যেমন: ১৭০০" min="1" required>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 18px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('expenseModal')">বাতিল</button>
+                    <button type="submit" class="btn btn-expense">সংরক্ষণ করুন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Sample Initial Data
+        const defaultDonations = [
+            { id: 1, name: "হাফেজ মাওলানা ওবায়দুল্লাহ", amount: 15000 },
+            { id: 2, name: "মো: আরিফুল ইসলাম", amount: 5000 },
+            { id: 3, name: "জনৈক দ্বীনি ভাই", amount: 10000 },
+            { id: 4, name: "ডাক্তার শফিকুল আলম", amount: 20000 },
+            { id: 5, name: "প্রকৌশলী কামরুল হাসান", amount: 8000 }
+        ];
+
+        const defaultExpenses = [
+            { id: 1, title: "স্টেজ ও প্যান্ডেল তৈরি করতে খরচ", amount: 1700 },
+            { id: 2, title: "ব্যানার তৈরি করতে খরচ", amount: 500 },
+            { id: 3, title: "মাইক ও সাউন্ড সিস্টেম ভাড়া", amount: 1200 },
+            { id: 4, title: "মেহমান ও ওলামায়ে কেরামদের আপ্যায়ন", amount: 3500 },
+            { id: 5, title: "প্রচারপত্র ও পোস্টার প্রিন্টিং খরচ", amount: 1800 }
+        ];
+
+        // State loaded initially from LocalStorage
+        let donations = JSON.parse(localStorage.getItem('conf_donations')) || defaultDonations;
+        let expenses = JSON.parse(localStorage.getItem('conf_expenses')) || defaultExpenses;
+
+        // Firebase Realtime Database Configuration
+        const firebaseConfig = {
+            databaseURL: "https://islamic-conference-2026-default-rtdb.firebaseio.com/"
+        };
+
+        let db = null;
+        if (typeof firebase !== 'undefined') {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+            } catch (err) {
+                console.error("Firebase init error:", err);
+            }
+        }
+
+        // Security / Admin Pass logic
+        let adminPass = localStorage.getItem('conf_admin_pass') || '1234'; // Default PIN: 1234
+        let isAdminLoggedIn = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('conf_theme') === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                updateThemeBtn(true);
+            }
+            renderAll();
+            initRealtimeDatabase();
+        });
+
+        function initRealtimeDatabase() {
+            const badge = document.getElementById('syncStatusBadge');
+            if (!db) {
+                if (badge) {
+                    badge.className = 'sync-badge error';
+                    badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> অফলাইন মোড (লোকাল সেভ)`;
+                }
+                return;
+            }
+
+            if (badge) {
+                badge.className = 'sync-badge syncing';
+                badge.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ক্লাউড ডাটাবেজ কানেক্ট হচ্ছে...`;
+            }
+
+            const dbRef = db.ref('conference_data');
+            dbRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    donations = Array.isArray(data.donations) ? data.donations.filter(Boolean) : (data.donations ? Object.values(data.donations) : []);
+                    expenses = Array.isArray(data.expenses) ? data.expenses.filter(Boolean) : (data.expenses ? Object.values(data.expenses) : []);
+                } else {
+                    // First time seed default data to Firebase
+                    donations = defaultDonations;
+                    expenses = defaultExpenses;
+                    dbRef.set({ donations, expenses });
+                }
+
+                localStorage.setItem('conf_donations', JSON.stringify(donations));
+                localStorage.setItem('conf_expenses', JSON.stringify(expenses));
+                
+                renderAll();
+
+                if (badge) {
+                    badge.className = 'sync-badge';
+                    badge.innerHTML = `<i class="fa-solid fa-circle-check"></i> লাইভ ক্লাউড ডাটাবেজ কানেক্টেড`;
+                }
+            }, (error) => {
+                console.error("Firebase sync error:", error);
+                if (badge) {
+                    badge.className = 'sync-badge error';
+                    badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> অফলাইন মোড (লোকাল সেভ)`;
+                }
+            });
+        }
+
+        // Theme Switcher
+        const themeBtn = document.getElementById('themeToggleBtn');
+        themeBtn.addEventListener('click', () => {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.body.removeAttribute('data-theme');
+                localStorage.setItem('conf_theme', 'light');
+                updateThemeBtn(false);
+            } else {
+                document.body.setAttribute('data-theme', 'dark');
+                localStorage.setItem('conf_theme', 'dark');
+                updateThemeBtn(true);
+            }
+        });
+
+        function updateThemeBtn(isDark) {
+            themeBtn.innerHTML = isDark 
+                ? `<i class="fa-solid fa-sun"></i> <span>লাইট</span>`
+                : `<i class="fa-solid fa-moon"></i> <span>ডার্ক</span>`;
+        }
+
+        // Admin Security Authentication
+        function handleAdminAuth() {
+            if (isAdminLoggedIn) {
+                // Logout
+                isAdminLoggedIn = false;
+                document.body.classList.remove('is-admin');
+                document.getElementById('adminBtnText').innerText = 'এডমিন লগইন';
+                document.getElementById('adminLoginBtn').classList.remove('logged-in');
+            } else {
+                openModal('adminLoginModal');
+            }
+        }
+
+        function submitAdminLogin(e) {
+            e.preventDefault();
+            const passInput = document.getElementById('adminPasswordInput').value;
+            if (passInput === adminPass) {
+                isAdminLoggedIn = true;
+                document.body.classList.add('is-admin');
+                document.getElementById('adminBtnText').innerText = 'লগআউট';
+                document.getElementById('adminLoginBtn').classList.add('logged-in');
+                closeModal('adminLoginModal');
+                document.getElementById('adminPasswordInput').value = '';
+                alert("স্বাগতম! এডমিন মোড সক্রিয় হয়েছে।");
+            } else {
+                alert("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
+            }
+        }
+
+        function changeAdminPassword() {
+            if (!isAdminLoggedIn) return;
+            const newPass = prompt("নতুন এডমিন পাসওয়ার্ড লিখুন:");
+            if (newPass && newPass.trim().length >= 4) {
+                adminPass = newPass.trim();
+                localStorage.setItem('conf_admin_pass', adminPass);
+                alert("পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে!");
+            } else if (newPass) {
+                alert("পাসওয়ার্ড অন্তত ৪ অক্ষরের হতে হবে।");
+            }
+        }
+
+        // Save Data to LocalStorage and Firebase Realtime Database
+        function saveData() {
+            localStorage.setItem('conf_donations', JSON.stringify(donations));
+            localStorage.setItem('conf_expenses', JSON.stringify(expenses));
+            renderAll();
+
+            if (db) {
+                const badge = document.getElementById('syncStatusBadge');
+                if (badge) {
+                    badge.className = 'sync-badge syncing';
+                    badge.innerHTML = `<i class="fa-solid fa-cloud-arrow-up fa-spin"></i> সেভ হচ্ছে...`;
+                }
+
+                db.ref('conference_data').set({
+                    donations: donations,
+                    expenses: expenses
+                }).then(() => {
+                    if (badge) {
+                        badge.className = 'sync-badge';
+                        badge.innerHTML = `<i class="fa-solid fa-circle-check"></i> লাইভ ক্লাউড ডাটাবেজ কানেক্টেড`;
+                    }
+                }).catch(err => {
+                    console.error("Firebase save error:", err);
+                    alert("ক্লাউড ডাটাবেজে সেভ হতে সমস্যা হয়েছে! নেটওয়ার্ক কানেকশন বা ফায়ারবেস পারমিশন চেক করুন।");
+                    if (badge) {
+                        badge.className = 'sync-badge error';
+                        badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> সেভ ব্যর্থ হয়েছে`;
+                    }
+                });
+            }
+        }
+
+        function renderAll() {
+            const totalDonation = donations.reduce((sum, d) => sum + Number(d.amount), 0);
+            const totalExpense = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+            const netBalance = totalDonation - totalExpense;
+
+            document.getElementById('heroTotalDonation').innerText = `৳ ${totalDonation.toLocaleString('bn-BD')}`;
+            document.getElementById('heroTotalExpense').innerText = `৳ ${totalExpense.toLocaleString('bn-BD')}`;
+            document.getElementById('heroNetBalance').innerText = `৳ ${netBalance.toLocaleString('bn-BD')}`;
+
+            document.getElementById('totalDonorsCount').innerText = donations.length;
+            document.getElementById('footerTotalDonation').innerText = `৳ ${totalDonation.toLocaleString('bn-BD')}`;
+
+            document.getElementById('totalExpensesCount').innerText = expenses.length;
+            document.getElementById('footerTotalExpense').innerText = `৳ ${totalExpense.toLocaleString('bn-BD')}`;
+
+            document.getElementById('summaryDonation').innerText = `৳ ${totalDonation.toLocaleString('bn-BD')}`;
+            document.getElementById('summaryExpense').innerText = `- ৳ ${totalExpense.toLocaleString('bn-BD')}`;
+            document.getElementById('summaryNetBalance').innerText = `৳ ${netBalance.toLocaleString('bn-BD')}`;
+
+            renderDonations();
+            renderExpenses();
+        }
+
+        function renderDonations() {
+            const search = document.getElementById('donorSearchInput').value.toLowerCase();
+            const filtered = donations.filter(d => d.name.toLowerCase().includes(search));
+
+            const tbody = document.getElementById('donationTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:16px;">কোনো ডোনেশনের ডাটা পাওয়া যায়নি।</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((d, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td class="donor-name">${escapeHtml(d.name)}</td>
+                    <td class="text-right amount-green">
+                        ৳ ${Number(d.amount).toLocaleString('bn-BD')}
+                        <button class="delete-btn" onclick="deleteDonation(${d.id})" title="ডিলিট">&times;</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderExpenses() {
+            const search = document.getElementById('expenseSearchInput').value.toLowerCase();
+            const filtered = expenses.filter(e => e.title.toLowerCase().includes(search));
+
+            const tbody = document.getElementById('expenseTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:16px;">কোনো খরচের ডাটা পাওয়া যায়নি।</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((e, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td style="font-weight: 500;">${escapeHtml(e.title)}</td>
+                    <td class="text-right amount-red">
+                        ৳ ${Number(e.amount).toLocaleString('bn-BD')}
+                        <button class="delete-btn" onclick="deleteExpense(${e.id})" title="ডিলিট">&times;</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Modals
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        // Form Submit
+        function saveDonation(e) {
+            e.preventDefault();
+            if (!isAdminLoggedIn) { alert("শুধুমাত্র এডমিন অনুদান যোগ করতে পারবেন!"); return; }
+
+            const name = document.getElementById('donorName').value.trim();
+            const amount = Number(document.getElementById('donorAmount').value);
+
+            donations.unshift({ id: Date.now(), name, amount });
+            saveData();
+
+            document.getElementById('donorName').value = '';
+            document.getElementById('donorAmount').value = '';
+            closeModal('donationModal');
+        }
+
+        function saveExpense(e) {
+            e.preventDefault();
+            if (!isAdminLoggedIn) { alert("শুধুমাত্র এডমিন খরচ যোগ করতে পারবেন!"); return; }
+
+            const title = document.getElementById('expenseTitle').value.trim();
+            const amount = Number(document.getElementById('expenseAmount').value);
+
+            expenses.unshift({ id: Date.now(), title, amount });
+            saveData();
+
+            document.getElementById('expenseTitle').value = '';
+            document.getElementById('expenseAmount').value = '';
+            closeModal('expenseModal');
+        }
+
+        function deleteDonation(id) {
+            if (!isAdminLoggedIn) return;
+            if (confirm("আপনি কি এই অনুদানের বিবরণটি ডিলিট করতে চান?")) {
+                donations = donations.filter(d => d.id !== id);
+                saveData();
+            }
+        }
+
+        function deleteExpense(id) {
+            if (!isAdminLoggedIn) return;
+            if (confirm("আপনি কি এই খরচের বিবরণটি ডিলিট করতে চান?")) {
+                expenses = expenses.filter(e => e.id !== id);
+                saveData();
+            }
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ donations, expenses }, null, 2));
+            const a = document.createElement('a');
+            a.href = dataStr;
+            a.download = `islamic_conference_2026_accounts.json`;
+            a.click();
+        }
+
+        function triggerImport() { document.getElementById('importFile').click(); }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.donations && data.expenses) {
+                        donations = data.donations;
+                        expenses = data.expenses;
+                        saveData();
+                        alert("ডাটা সফলভাবে আপলোড করা হয়েছে!");
+                    }
+                } catch(err) {
+                    alert("ফাইল সঠিক নয়!");
+                }
+            }
+            reader.readAsText(file);
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+            });
+        }
+    </script>
+</body>
+</html>
