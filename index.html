@@ -784,6 +784,8 @@
         let jsonBinId  = SafeStorage.getItem('conf_jsonbin_id')  || '';
         let jsonBinKey = SafeStorage.getItem('conf_jsonbin_key') || '';
         const JSONBIN_BASE = 'https://api.jsonbin.io/v3/b/';
+        // cloudApiUrl is derived from jsonBinId (used by legacy functions)
+        let cloudApiUrl = (jsonBinId && jsonBinKey) ? (JSONBIN_BASE + jsonBinId) : '';
 
         // Default Initial Demo Data
         const defaultDonations = [
@@ -922,54 +924,60 @@
             }
         }
 
-        // Save Data Locally and Sync with Online Cloud
+        // Save Data Locally and Sync with JSONBin Cloud
         function saveData() {
             SafeStorage.setItem('conf_donations', JSON.stringify(donations));
             SafeStorage.setItem('conf_expenses', JSON.stringify(expenses));
             renderAll();
 
-            if (cloudApiUrl) {
-                pushCloudData(); // Sync to online database
+            if (jsonBinId && jsonBinKey) {
+                pushCloudData(); // Sync to JSONBin cloud
             }
         }
 
-        // Fetch Live Data from Cloud API / Google Sheets
+        // Fetch Live Data from JSONBin.io
         function fetchCloudData(silent = false) {
-            if (!cloudApiUrl) return;
+            if (!jsonBinId || !jsonBinKey) return;
 
             if (!silent) document.getElementById('syncText').innerText = "লাইভ ডাটা আপডেট হচ্ছে...";
 
-            fetch(cloudApiUrl)
+            fetch(JSONBIN_BASE + jsonBinId + '/latest', {
+                headers: { 'X-Master-Key': jsonBinKey }
+            })
                 .then(res => res.json())
                 .then(data => {
-                    if (data && typeof data === 'string') {
-                        data = JSON.parse(data);
-                    }
-                    if (data && data.donations && data.expenses) {
-                        donations = data.donations;
-                        expenses = data.expenses;
+                    let record = (data && data.record) ? data.record : data;
+                    if (typeof record === 'string') record = JSON.parse(record);
+                    if (record && record.donations && record.expenses) {
+                        donations = record.donations;
+                        expenses = record.expenses;
                         SafeStorage.setItem('conf_donations', JSON.stringify(donations));
                         SafeStorage.setItem('conf_expenses', JSON.stringify(expenses));
                         renderAll();
                         document.getElementById('syncText').innerText = "লাইভ ক্লাউড ডাটা সিঙ্কড 🟢";
+                    } else {
+                        document.getElementById('syncText').innerText = "ক্লাউড সংযুক্ত ✅";
                     }
                 })
                 .catch(err => {
-                    document.getElementById('syncText').innerText = "অফলাইন / লোকাল ডাটা সক্রিয়";
+                    document.getElementById('syncText').innerText = "অফলাইন / লোকাল ডাটা সক্রিয়";
                 });
         }
 
-        // Push Local Updates to Cloud API / Google Sheets
+        // Push Local Updates to JSONBin.io (PUT = update existing bin)
         function pushCloudData() {
-            if (!cloudApiUrl) return;
+            if (!jsonBinId || !jsonBinKey) return;
 
             document.getElementById('syncText').innerText = "ক্লাউডে সেভ হচ্ছে...";
 
             const payload = JSON.stringify({ donations, expenses });
 
-            fetch(cloudApiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
+            fetch(JSONBIN_BASE + jsonBinId, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': jsonBinKey
+                },
                 body: payload
             })
             .then(res => res.json())
@@ -979,6 +987,27 @@
             .catch(err => {
                 document.getElementById('syncText').innerText = "লোকাল সেভ সম্পন্ন (অনলাইন অপেক্ষমাণ)";
             });
+        }
+
+        // JSONBin Config Save Handler (called from the modal form)
+        function saveJsonBinConfig(e) {
+            e.preventDefault();
+            const newId  = document.getElementById('jsonBinId').value.trim();
+            const newKey = document.getElementById('jsonBinKey').value.trim();
+            if (!newId || !newKey) {
+                alert('Bin ID এবং API Secret Key উভয়ই লিখুন।');
+                return;
+            }
+            jsonBinId  = newId;
+            jsonBinKey = newKey;
+            cloudApiUrl = JSONBIN_BASE + jsonBinId;
+            SafeStorage.setItem('conf_jsonbin_id',  jsonBinId);
+            SafeStorage.setItem('conf_jsonbin_key', jsonBinKey);
+            closeModal('cloudModal');
+            // First push current local data to cloud, then fetch to confirm
+            pushCloudData();
+            setTimeout(() => fetchCloudData(), 2000);
+            alert('✅ JSONBin সেটআপ সম্পন্ন! এখন সব ডিভাইস থেকে একই ডাটা দেখা যাবে।');
         }
 
         // Cloud URL Save Handler
