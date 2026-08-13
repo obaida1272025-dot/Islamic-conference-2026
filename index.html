@@ -781,9 +781,9 @@
         };
 
         // JSONBin.io Cloud Database Config
-        // Preset Default Bin ID from user setup so all visitors automatically connect to live database
+        // Preset Default Bin ID and Secret Key from user setup so all visitors automatically connect to live database
         const DEFAULT_BIN_ID  = '6a7d6f41da38895dfede4c52';
-        const DEFAULT_BIN_KEY = ''; // Optional default key
+        const DEFAULT_BIN_KEY = '$2a$10$0rSYcdcC8iDS6DCxGe3ilOBC5gHFJHj9wlHaSmYs2J8e8/FJBJw3y';
 
         let jsonBinId  = SafeStorage.getItem('conf_jsonbin_id')  || DEFAULT_BIN_ID;
         let jsonBinKey = SafeStorage.getItem('conf_jsonbin_key') || DEFAULT_BIN_KEY;
