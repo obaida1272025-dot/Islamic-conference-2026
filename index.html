@@ -781,11 +781,14 @@
         };
 
         // JSONBin.io Cloud Database Config
-        let jsonBinId  = SafeStorage.getItem('conf_jsonbin_id')  || '';
-        let jsonBinKey = SafeStorage.getItem('conf_jsonbin_key') || '';
+        // Preset Default Bin ID from user setup so all visitors automatically connect to live database
+        const DEFAULT_BIN_ID  = '6a7d6f41da38895dfede4c52';
+        const DEFAULT_BIN_KEY = ''; // Optional default key
+
+        let jsonBinId  = SafeStorage.getItem('conf_jsonbin_id')  || DEFAULT_BIN_ID;
+        let jsonBinKey = SafeStorage.getItem('conf_jsonbin_key') || DEFAULT_BIN_KEY;
         const JSONBIN_BASE = 'https://api.jsonbin.io/v3/b/';
-        // cloudApiUrl is derived from jsonBinId (used by legacy functions)
-        let cloudApiUrl = (jsonBinId && jsonBinKey) ? (JSONBIN_BASE + jsonBinId) : '';
+        let cloudApiUrl = jsonBinId ? (JSONBIN_BASE + jsonBinId) : '';
 
         // Default Initial Demo Data
         const defaultDonations = [
@@ -810,7 +813,7 @@
 
         // Load local cache immediately
         const hasInitialized = SafeStorage.getItem('conf_has_initialized');
-        if (!hasInitialized) {
+        if (!hasInitialized && !jsonBinId) {
             donations = defaultDonations;
             expenses = defaultExpenses;
             SafeStorage.setItem('conf_has_initialized', 'true');
@@ -842,22 +845,22 @@
                 document.getElementById('adminLoginBtn').classList.add('logged-in');
             }
 
-            if (jsonBinId && jsonBinKey) {
+            if (jsonBinId) {
                 document.getElementById('jsonBinId').value = jsonBinId;
-                document.getElementById('jsonBinKey').value = jsonBinKey;
-                fetchCloudData(); // Pull live data immediately
+                if (jsonBinKey) document.getElementById('jsonBinKey').value = jsonBinKey;
+                fetchCloudData(); // Pull live data immediately for all visitors
             } else {
                 document.getElementById('syncText').innerText = "অনলাইন কানেকশন প্রস্তুত";
             }
 
             renderAll();
 
-            // Auto-refresh every 20 seconds for all visitors
+            // Auto-refresh every 10 seconds for all visitors
             setInterval(() => {
-                if (jsonBinId && jsonBinKey) {
+                if (jsonBinId) {
                     fetchCloudData(true); // Silent background sync
                 }
-            }, 20000);
+            }, 10000);
         });
 
         // Theme Switcher
@@ -930,25 +933,30 @@
             SafeStorage.setItem('conf_expenses', JSON.stringify(expenses));
             renderAll();
 
-            if (jsonBinId && jsonBinKey) {
+            if (jsonBinId) {
                 pushCloudData(); // Sync to JSONBin cloud
             }
         }
 
         // Fetch Live Data from JSONBin.io
         function fetchCloudData(silent = false) {
-            if (!jsonBinId || !jsonBinKey) return;
+            if (!jsonBinId) return;
 
             if (!silent) document.getElementById('syncText').innerText = "লাইভ ডাটা আপডেট হচ্ছে...";
 
-            fetch(JSONBIN_BASE + jsonBinId + '/latest', {
-                headers: { 'X-Master-Key': jsonBinKey }
-            })
+            const reqHeaders = {};
+            if (jsonBinKey) {
+                reqHeaders['X-Master-Key'] = jsonBinKey;
+            }
+
+            fetch(JSONBIN_BASE + jsonBinId + '/latest', { headers: reqHeaders })
                 .then(res => res.json())
                 .then(data => {
                     let record = (data && data.record) ? data.record : data;
-                    if (typeof record === 'string') record = JSON.parse(record);
-                    if (record && record.donations && record.expenses) {
+                    if (typeof record === 'string') {
+                        try { record = JSON.parse(record); } catch(e){}
+                    }
+                    if (record && Array.isArray(record.donations) && Array.isArray(record.expenses)) {
                         donations = record.donations;
                         expenses = record.expenses;
                         SafeStorage.setItem('conf_donations', JSON.stringify(donations));
@@ -966,7 +974,11 @@
 
         // Push Local Updates to JSONBin.io (PUT = update existing bin)
         function pushCloudData() {
-            if (!jsonBinId || !jsonBinKey) return;
+            if (!jsonBinId) return;
+            if (!jsonBinKey) {
+                document.getElementById('syncText').innerText = "⚠️ API Secret Key প্রয়োজন (ক্লাউড সেটআপ থেকে Key দিন)";
+                return;
+            }
 
             document.getElementById('syncText').innerText = "ক্লাউডে সেভ হচ্ছে...";
 
